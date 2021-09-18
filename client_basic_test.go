@@ -91,7 +91,7 @@ func TestClient_withSessionRetry(t *testing.T) {
 	client := NewClient(server.URL)
 
 	err := client.withSessionRetry(ctx, func(ctx context.Context) error {
-		return client.get(ctx, "/api/device/basic_information", nil)
+		return client.Get(ctx, "/api/device/basic_information", nil)
 	})
 
 	assert.NoError(t, err, "should be no error")
@@ -103,7 +103,7 @@ func TestClient_withSessionRetry(t *testing.T) {
 	getSessionCalls = 0
 
 	err = client.withSessionRetry(ctx, func(ctx context.Context) error {
-		return client.get(ctx, "/api/device/basic_information", nil)
+		return client.Get(ctx, "/api/device/basic_information", nil)
 	})
 	assert.NoError(t, err, "should be no error")
 

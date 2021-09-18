@@ -19,7 +19,7 @@ func (dialup *ClientDialup) MobileSwitch(ctx context.Context) (bool, error) {
 	var result mobileSwitchResponse
 
 	if err := dialup.withSessionRetry(ctx, func(ctx context.Context) error {
-		return dialup.get(ctx, "/api/dialup/mobile-dataswitch", &result)
+		return dialup.Get(ctx, "/api/dialup/mobile-dataswitch", &result)
 	}); err != nil {
 		return false, err
 	}

@@ -68,7 +68,7 @@ func (auth *ClientUser) StateLogin(ctx context.Context) (*UserStateLogin, error)
 	var result UserStateLogin
 
 	if err := auth.withSessionRetry(ctx, func(ctx context.Context) error {
-		return auth.get(ctx, "/api/user/state-login", &result)
+		return auth.Get(ctx, "/api/user/state-login", &result)
 	}); err != nil {
 		return nil, err
 	}

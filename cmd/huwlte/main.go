@@ -123,6 +123,7 @@ func main() {
 			deviceCmd,
 			monitoringCmd,
 			dialupCmd,
+			rawCmd,
 		},
 	}
 
