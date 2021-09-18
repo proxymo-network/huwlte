@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
+	"time"
 
 	"github.com/anexia-it/go-human"
 	"github.com/proxymo-network/huwlte"
@@ -13,14 +15,14 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func newClient(c *cli.Context) (*huwlte.Client, error) {
+func newClient(ctx context.Context, c *cli.Context) (*huwlte.Client, context.CancelFunc, error) {
 	doer := http.DefaultClient
 
 	proxy := c.String("proxy")
 	if proxy != "" {
 		proxyURL, err := url.Parse(proxy)
 		if err != nil {
-			return nil, xerrors.Errorf("failed to parse proxy URL: %w", err)
+			return nil, nil, xerrors.Errorf("failed to parse proxy URL: %w", err)
 		}
 
 		doer = &http.Client{
@@ -30,7 +32,29 @@ func newClient(c *cli.Context) (*huwlte.Client, error) {
 		}
 	}
 
-	return huwlte.NewClient(c.String("url"), huwlte.WithDoer(doer)), nil
+	opts := []huwlte.ClientOpt{
+		huwlte.WithDoer(doer),
+	}
+
+	if session := c.String("session"); session != "" {
+		storage := huwlte.LocalSessionStorage{
+			Dir: c.String("session-dir"),
+		}
+
+		opts = append(opts, huwlte.WithStorage(session, &storage))
+	}
+
+	client := huwlte.NewClient(c.String("url"), opts...)
+
+	if err := client.LoadSession(ctx); err != nil {
+		return nil, nil, xerrors.Errorf("load session: %w", err)
+	}
+
+	return client, func() {
+		if err := client.SaveSession(ctx); err != nil {
+			log.Printf("failed to save session: %v", err)
+		}
+	}, nil
 }
 
 func pretty(v interface{}) error {
@@ -42,7 +66,13 @@ func pretty(v interface{}) error {
 }
 
 func main() {
-	ctx := context.Background()
+
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sessionDir := path.Join(cacheDir, "huwlte")
 
 	app := &cli.App{
 		Name:  "huwlte",
@@ -60,37 +90,37 @@ func main() {
 				Usage:   "URL of proxy server",
 				EnvVars: []string{"HUWLTE_PROXY"},
 			},
+			&cli.DurationFlag{
+				Name:    "timeout",
+				Aliases: []string{"t"},
+				Usage:   "timeout for HTTP requests",
+				EnvVars: []string{"HUWLTE_TIMEOUT"},
+				Value:   30 * time.Second,
+			},
+			&cli.StringFlag{
+				Name:    "session",
+				Aliases: []string{"s"},
+				Usage:   "session name",
+			},
+			&cli.PathFlag{
+				Name:    "session-dir",
+				Usage:   "store session in a directory",
+				EnvVars: []string{"HUWLTE_SESSION_DIR"},
+				Value:   sessionDir,
+			},
+			&cli.BoolFlag{
+				Name:    "reset-session",
+				Aliases: []string{"r"},
+				Usage:   "erase all session data",
+			},
 		},
 		Commands: []*cli.Command{
-			{
-				Name:  "device",
-				Usage: "contains device related commands",
-				Subcommands: []*cli.Command{
-					{
-						Name:    "basic-information",
-						Aliases: []string{"info"},
-						Usage:   "get basic information of device",
-						Action: func(c *cli.Context) error {
-							client, err := newClient(c)
-							if err != nil {
-								return xerrors.Errorf("failed to create client: %w", err)
-							}
-
-							info, err := client.Device.BasicInformation(ctx)
-							if err != nil {
-								return xerrors.Errorf("failed to get basic information: %w", err)
-							}
-
-							return pretty(info)
-						},
-					},
-				},
-			},
+			userCmd,
+			deviceCmd,
 		},
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }

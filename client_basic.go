@@ -1,25 +1,24 @@
 package huwlte
 
 import (
+	"bytes"
 	"context"
 	"encoding/xml"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 )
 
-type session struct {
-	XMLName xml.Name `xml:"response"`
-	Cookie  string   `xml:"SesInfo"`
-	Token   string   `xml:"TokInfo"`
-}
-
-func (s *session) empty() bool {
-	return s.Cookie == "" || s.Token == ""
-}
+const (
+	headerRequestVerificationToken    = "__RequestVerificationToken"
+	headerRequestVerificationTokenOne = "__RequestVerificationTokenone"
+	headerRequestVerificationTokenTwo = "__RequestVerificationTokentwo"
+)
 
 func (client *Client) getURL(path string) string {
 	return strings.TrimSuffix(client.baseURL, "/") + "/" + strings.TrimPrefix(path, "/")
@@ -52,11 +51,11 @@ func (client *Client) withSessionRetry(ctx context.Context, f func(ctx context.C
 			if err := client.getSession(ctx); err != nil {
 				return xerrors.Errorf("get session: %w", err)
 			}
-
+			time.Sleep(time.Second)
 			continue
-		} else {
-			return err
 		}
+
+		return err
 	}
 }
 
@@ -70,8 +69,8 @@ func (client *Client) get(ctx context.Context, path string, dst interface{}) err
 		req.Header.Set("Cookie", client.session.Cookie)
 	}
 
-	if client.session.Token != "" {
-		req.Header.Set("__RequestVerificationToken", client.session.Token)
+	if client.session.HasToken() {
+		req.Header.Set(headerRequestVerificationToken, client.session.Tokens[0])
 	}
 
 	res, err := client.doer.Do(req)
@@ -80,7 +79,15 @@ func (client *Client) get(ctx context.Context, path string, dst interface{}) err
 	}
 	defer res.Body.Close()
 
-	content, err := ioutil.ReadAll(res.Body)
+	if err := client.proccessResponse(res.Body, dst); err != nil {
+		return xerrors.Errorf("process response: %w", err)
+	}
+
+	return nil
+}
+
+func (client *Client) proccessResponse(r io.Reader, dst interface{}) error {
+	content, err := ioutil.ReadAll(r)
 	if err != nil {
 		return xerrors.Errorf("read response: %w", err)
 	}
@@ -98,6 +105,68 @@ func (client *Client) get(ctx context.Context, path string, dst interface{}) err
 		if err := envelope.decode(dst); err != nil {
 			return xerrors.Errorf("decode response: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (client *Client) post(
+	ctx context.Context,
+	path string,
+	data interface{},
+	refershCSRF bool,
+	dst interface{},
+) error {
+	body := &bytes.Buffer{}
+
+	if data != nil {
+		if err := xml.NewEncoder(body).Encode(data); err != nil {
+			return xerrors.Errorf("encode request: %w", err)
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, client.getURL(path), body)
+	if err != nil {
+		return xerrors.Errorf("create request: %w", err)
+	}
+
+	if client.session.Cookie != "" {
+		req.Header.Set("Cookie", client.session.Cookie)
+	}
+
+	if client.session.HasToken() {
+		if client.session.HasMultipleTokens() {
+			req.Header.Set(headerRequestVerificationToken, client.session.PopToken())
+		} else {
+			req.Header.Set(headerRequestVerificationToken, client.session.Tokens[0])
+		}
+	}
+
+	res, err := client.doer.Do(req)
+	if err != nil {
+		return xerrors.Errorf("do request: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return xerrors.Errorf("response status code not 200: %d", res.StatusCode)
+	}
+
+	if err := client.proccessResponse(res.Body, dst); err != nil {
+		return xerrors.Errorf("process response: %w", err)
+	}
+
+	if refershCSRF {
+		client.session.ResetTokens()
+	}
+
+	if rvt1 := res.Header.Get(headerRequestVerificationTokenOne); rvt1 != "" {
+		client.session.AddToken(rvt1)
+		if rvt2 := res.Header.Get(headerRequestVerificationTokenTwo); rvt2 != "" {
+			client.session.AddToken(rvt2)
+		}
+	} else if rvt := res.Header.Get(headerRequestVerificationToken); rvt != "" {
+		client.session.AddToken(rvt)
 	}
 
 	return nil

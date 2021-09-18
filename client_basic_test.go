@@ -46,7 +46,7 @@ func TestClient_getSession(t *testing.T) {
 
 		assert.NoError(t, err, "should be no error")
 		assert.NotZero(t, client.session.Cookie, "should have a session cookie")
-		assert.NotZero(t, client.session.Token, "should have a session token")
+		assert.NotZero(t, client.session.Tokens, "should have a session token")
 	})
 }
 
