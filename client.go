@@ -33,8 +33,10 @@ type Client struct {
 	sessionName    string
 	sessionStorage SessionStorage
 
-	Device *ClientDevice
-	User   *ClientUser
+	Device     *ClientDevice
+	User       *ClientUser
+	Monitoring *ClientMonitoring
+	Dialup     *ClientDialup
 }
 
 // NewClient creates a new Client instance.
@@ -49,6 +51,8 @@ func NewClient(baseURL string, opts ...ClientOpt) *Client {
 
 	c.Device = &ClientDevice{c}
 	c.User = &ClientUser{c}
+	c.Monitoring = &ClientMonitoring{c}
+	c.Dialup = &ClientDialup{c}
 
 	return c
 }

@@ -8,9 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/xml"
 	"errors"
-	"time"
 
-	"github.com/avast/retry-go"
 	"golang.org/x/xerrors"
 )
 
@@ -83,26 +81,11 @@ func (auth *ClientUser) Login(ctx context.Context, username string, password str
 		username = "admin"
 	}
 
-	var state *UserStateLogin
+	state, err := auth.StateLogin(ctx)
 
-	// try get current auth state
-	if err := retry.Do(
-		func() error {
-			var err error
-			state, err = auth.StateLogin(ctx)
-
-			var modemErr *Error
-			if errors.As(err, &modemErr) && modemErr.Code == ErrorCodeNotSupported {
-				return nil
-			}
-
-			return err
-		},
-		retry.Context(ctx),
-		retry.Attempts(5),
-		retry.Delay(time.Millisecond*100),
-	); err != nil {
-		return xerrors.Errorf("get auth state: %w", err)
+	var modemErr *Error
+	if errors.As(err, &modemErr) && modemErr.Code == ErrorCodeNotSupported {
+		return nil
 	}
 
 	if state.State == UserStateLoggedIn && !relogin {

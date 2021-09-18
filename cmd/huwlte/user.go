@@ -20,12 +20,14 @@ var (
 		Usage: "login to the modem ui",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "username",
-				Usage: "modem admin username",
-				Value: "admin",
+				Name:    "username",
+				Aliases: []string{"u"},
+				Usage:   "modem admin username",
+				Value:   "admin",
 			},
 			&cli.StringFlag{
 				Name:     "password",
+				Aliases:  []string{"p"},
 				Usage:    "modem admin password",
 				Required: true,
 			},
@@ -55,7 +57,7 @@ var (
 
 	userStateLoginCmd = &cli.Command{
 		Name:    "state-login",
-		Aliases: []string{"state"},
+		Aliases: []string{"login-state", "state"},
 		Usage:   "get current login state",
 		Action: func(c *cli.Context) error {
 			ctx, cancel := newCtx(c)

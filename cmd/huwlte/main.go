@@ -113,10 +113,16 @@ func main() {
 				Aliases: []string{"r"},
 				Usage:   "erase all session data",
 			},
+			&cli.BoolFlag{
+				Name:  "no-emoji",
+				Usage: "disable emoji",
+			},
 		},
 		Commands: []*cli.Command{
 			userCmd,
 			deviceCmd,
+			monitoringCmd,
+			dialupCmd,
 		},
 	}
 

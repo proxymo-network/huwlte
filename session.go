@@ -28,12 +28,17 @@ func (s *Session) AddToken(v string) {
 	s.Tokens = append(s.Tokens, v)
 }
 
+func (s *Session) Reset() {
+	s.Cookie = ""
+	s.Tokens = []string{}
+}
+
 func (s *Session) ResetTokens() {
 	s.Tokens = []string{}
 }
 
 func (s *Session) HasMultipleTokens() bool {
-	return len(s.Tokens) > 0
+	return len(s.Tokens) > 1
 }
 
 func (s *Session) Token() string {

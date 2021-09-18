@@ -160,6 +160,10 @@ func (client *Client) post(
 		client.session.ResetTokens()
 	}
 
+	if v := res.Header.Get("Set-Cookie"); v != "" {
+		client.session.Cookie = v
+	}
+
 	if rvt1 := res.Header.Get(headerRequestVerificationTokenOne); rvt1 != "" {
 		client.session.AddToken(rvt1)
 		if rvt2 := res.Header.Get(headerRequestVerificationTokenTwo); rvt2 != "" {
