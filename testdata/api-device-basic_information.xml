@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <productfamily>LTE</productfamily>
+  <classify>wingle</classify>
+  <multimode>0</multimode>
+  <restore_default_status>0</restore_default_status>
+  <autoupdate_guide_status>0</autoupdate_guide_status>
+  <sim_save_pin_enable>0</sim_save_pin_enable>
+  <devicename>E8372</devicename>
+  <SoftwareVersion>21.333.03.00.00</SoftwareVersion>
+  <WebUIVersion>17.100.21.02.03</WebUIVersion>
+</response>
