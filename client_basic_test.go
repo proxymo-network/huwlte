@@ -53,63 +53,60 @@ func TestClient_getSession(t *testing.T) {
 func TestClient_withSessionRetry(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("NoError", func(t *testing.T) {
+	var (
+		getSessionCalls          int
+		getBasicInformationCalls int
+	)
 
-		var (
-			getSessionCalls          int
-			getBasicInformationCalls int
-		)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/api/webserver/SesTokInfo":
+			getSessionCalls++
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch r.URL.String() {
-			case "/api/webserver/SesTokInfo":
-				getSessionCalls++
+			assert.Equal(t, http.MethodGet, r.Method)
+			assert.Equal(t, "/api/webserver/SesTokInfo", r.URL.String())
 
-				assert.Equal(t, http.MethodGet, r.Method)
-				assert.Equal(t, "/api/webserver/SesTokInfo", r.URL.String())
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "text/html")
 
-				w.WriteHeader(http.StatusOK)
-				w.Header().Set("Content-Type", "text/html")
+			copyTestdataJSON(t, "testdata/api-webserver-SesTokInfo.xml", w)
+		case "/api/device/basic_information":
+			getBasicInformationCalls++
 
-				copyTestdataJSON(t, "testdata/api-webserver-SesTokInfo.xml", w)
-			case "/api/device/basic_information":
-				getBasicInformationCalls++
+			assert.Equal(t, http.MethodGet, r.Method)
+			assert.Equal(t, "/api/device/basic_information", r.URL.String())
 
-				assert.Equal(t, http.MethodGet, r.Method)
-				assert.Equal(t, "/api/device/basic_information", r.URL.String())
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "text/html")
 
-				w.WriteHeader(http.StatusOK)
-				w.Header().Set("Content-Type", "text/html")
-
-				if cookie := r.Header.Get("Cookie"); cookie == "" || cookie == "invalid" {
-					copyTestdataJSON(t, "testdata/error.xml", w)
-				}
-
-				copyTestdataJSON(t, "testdata/api-device-basic_information.xml", w)
+			if cookie := r.Header.Get("Cookie"); cookie == "" || cookie == "invalid" {
+				copyTestdataJSON(t, "testdata/error.xml", w)
 			}
-		}))
-		defer server.Close()
 
-		client := NewClient(server.URL)
+			copyTestdataJSON(t, "testdata/api-device-basic_information.xml", w)
+		}
+	}))
+	defer server.Close()
 
-		err := client.withSessionRetry(ctx, func(ctx context.Context) error {
-			return client.get(ctx, "/api/device/basic_information", nil)
-		})
+	client := NewClient(server.URL)
 
-		assert.NoError(t, err, "should be no error")
-		assert.Equal(t, 1, getBasicInformationCalls, "should have called getSession twice")
-		assert.Equal(t, 1, getSessionCalls, "should have called getSession once")
-
-		client.session.Cookie = "invalid"
-		getBasicInformationCalls = 0
-		getSessionCalls = 0
-
-		err = client.withSessionRetry(ctx, func(ctx context.Context) error {
-			return client.get(ctx, "/api/device/basic_information", nil)
-		})
-		assert.NoError(t, err, "should be no error")
-
-		assert.Equal(t, 1, getSessionCalls, "should have called getSession one")
-		assert.Equal(t, 1, getBasicInformationCalls, "should have called getSession one")
+	err := client.withSessionRetry(ctx, func(ctx context.Context) error {
+		return client.get(ctx, "/api/device/basic_information", nil)
 	})
+
+	assert.NoError(t, err, "should be no error")
+	assert.Equal(t, 1, getBasicInformationCalls, "should have called getSession twice")
+	assert.Equal(t, 1, getSessionCalls, "should have called getSession once")
+
+	client.session.Cookie = "invalid"
+	getBasicInformationCalls = 0
+	getSessionCalls = 0
+
+	err = client.withSessionRetry(ctx, func(ctx context.Context) error {
+		return client.get(ctx, "/api/device/basic_information", nil)
+	})
+	assert.NoError(t, err, "should be no error")
+
+	assert.Equal(t, 1, getSessionCalls, "should have called get session one")
+	assert.Equal(t, 2, getBasicInformationCalls, "should have called get basic informatin one")
 }
