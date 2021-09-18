@@ -25,8 +25,12 @@ type ClientDevice struct {
 // BasicInformation returns the basic information of the device.
 func (device *Client) BasicInformation(ctx context.Context) (*DeviceBasicInformation, error) {
 	var result DeviceBasicInformation
-	device.withSessionRetry(ctx, func(ctx context.Context) error {
+
+	if err := device.withSessionRetry(ctx, func(ctx context.Context) error {
 		return device.get(ctx, "/api/device/basic_information", &result)
-	})
+	}); err != nil {
+		return nil, err
+	}
+
 	return &result, nil
 }
