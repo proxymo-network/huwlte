@@ -16,10 +16,10 @@ func WithDoer(doer *http.Client) ClientOpt {
 // Clients it's XML API wrapper.
 type Client struct {
 	baseURL string
-
-	doer *http.Client
-
+	doer    *http.Client
 	session session
+
+	Device *ClientDevice
 }
 
 // NewClient creates a new Client instance.
@@ -31,6 +31,9 @@ func NewClient(baseURL string, opts ...ClientOpt) *Client {
 	for _, opt := range opts {
 		opt(c)
 	}
+
+	c.Device = &ClientDevice{c}
+
 	return c
 }
 
