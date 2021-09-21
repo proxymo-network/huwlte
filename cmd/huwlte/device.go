@@ -18,6 +18,34 @@ var (
 		Usage: "contains device related commands",
 		Subcommands: []*cli.Command{
 			deviceInfoCmd,
+			deviceReboot,
+		},
+	}
+
+	deviceReboot = &cli.Command{
+		Name:  "reboot",
+		Usage: "reboot device",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "wait",
+				Usage: "wait for device to come back online",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			ctx, cancel := newCtx(c)
+			defer cancel()
+
+			client, cancel, err := newClient(ctx, c)
+			if err != nil {
+				return xerrors.Errorf("failed to create client: %w", err)
+			}
+			defer cancel()
+
+			if err := client.Device.Control(ctx, 1); err != nil {
+				return xerrors.Errorf("send request: %w", err)
+			}
+
+			return nil
 		},
 	}
 
