@@ -17,7 +17,8 @@ var (
 		Name:  "device",
 		Usage: "contains device related commands",
 		Subcommands: []*cli.Command{
-			deviceInfoCmd,
+			deviceInfoBasicCmd,
+			deviceInfo,
 			deviceReboot,
 		},
 	}
@@ -49,9 +50,9 @@ var (
 		},
 	}
 
-	deviceInfoCmd = &cli.Command{
+	deviceInfoBasicCmd = &cli.Command{
 		Name:    "basic-information",
-		Aliases: []string{"info"},
+		Aliases: []string{"basic-info"},
 		Usage:   "get basic information of device",
 		Action: func(c *cli.Context) error {
 			ctx, cancel := newCtx(c)
@@ -64,6 +65,29 @@ var (
 			defer cancel()
 
 			info, err := client.Device.BasicInformation(ctx)
+			if err != nil {
+				return xerrors.Errorf("failed to get basic information: %w", err)
+			}
+
+			return pretty(info)
+		},
+	}
+
+	deviceInfo = &cli.Command{
+		Name:    "information",
+		Aliases: []string{"info"},
+		Usage:   "get full information of device",
+		Action: func(c *cli.Context) error {
+			ctx, cancel := newCtx(c)
+			defer cancel()
+
+			client, cancel, err := newClient(ctx, c)
+			if err != nil {
+				return xerrors.Errorf("failed to create client: %w", err)
+			}
+			defer cancel()
+
+			info, err := client.Device.Information(ctx)
 			if err != nil {
 				return xerrors.Errorf("failed to get basic information: %w", err)
 			}
