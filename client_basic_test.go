@@ -40,7 +40,7 @@ func TestClient_getSession(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewClient(server.URL)
+		client := New(server.URL)
 
 		err := client.getSession(ctx)
 
@@ -88,7 +88,7 @@ func TestClient_withSessionRetry(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL)
+	client := New(server.URL)
 
 	err := client.withSessionRetry(ctx, func(ctx context.Context) error {
 		return client.get(ctx, "/api/device/basic_information", nil)

@@ -9,7 +9,7 @@ import (
 
 func TestNewClient(t *testing.T) {
 	t.Run("Minimal", func(t *testing.T) {
-		c := NewClient("http://192.168.1.8:8080")
+		c := New("http://192.168.1.8:8080")
 		assert.NotNil(t, c, "client is not created")
 		assert.NotNil(t, c.getDoer(), "client is not created")
 	})
@@ -17,7 +17,7 @@ func TestNewClient(t *testing.T) {
 	t.Run("Extended", func(t *testing.T) {
 		myClient := &http.Client{}
 
-		c := NewClient("http://192.168.8.8",
+		c := New("http://192.168.8.8",
 			WithDoer(myClient),
 		)
 

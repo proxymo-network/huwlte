@@ -44,7 +44,7 @@ func newClient(ctx context.Context, c *cli.Context) (*huwlte.Client, context.Can
 		opts = append(opts, huwlte.WithStorage(session, &storage))
 	}
 
-	client := huwlte.NewClient(c.String("url"), opts...)
+	client := huwlte.New(c.String("url"), opts...)
 
 	if err := client.LoadSession(ctx); err != nil {
 		return nil, nil, xerrors.Errorf("load session: %w", err)

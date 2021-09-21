@@ -40,8 +40,8 @@ type Client struct {
 	Net        *ClientNet
 }
 
-// NewClient creates a new Client instance.
-func NewClient(baseURL string, opts ...ClientOpt) *Client {
+// New creates a new Client instance.
+func New(baseURL string, opts ...ClientOpt) *Client {
 	c := &Client{
 		baseURL: baseURL,
 		doer:    http.DefaultClient,

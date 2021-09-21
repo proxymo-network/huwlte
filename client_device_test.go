@@ -39,7 +39,7 @@ func TestClientDevice_BasicInformation(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL)
+	client := New(server.URL)
 	info, err := client.Device.BasicInformation(ctx)
 
 	assert.NoError(t, err)
