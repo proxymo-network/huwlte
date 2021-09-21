@@ -25,7 +25,7 @@ func (client *Client) getURL(path string) string {
 }
 
 func (client *Client) getSession(ctx context.Context) error {
-	if err := client.Get(ctx, "/api/webserver/SesTokInfo", &client.session); err != nil {
+	if err := client.get(ctx, "/api/webserver/SesTokInfo", &client.session); err != nil {
 		return xerrors.Errorf("get session: %w", err)
 	}
 	return nil
@@ -60,6 +60,12 @@ func (client *Client) withSessionRetry(ctx context.Context, f func(ctx context.C
 }
 
 func (client *Client) Get(ctx context.Context, path string, dst interface{}) error {
+	return client.withSessionRetry(ctx, func(ctx context.Context) error {
+		return client.get(ctx, path, dst)
+	})
+}
+
+func (client *Client) get(ctx context.Context, path string, dst interface{}) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, client.getURL(path), nil)
 	if err != nil {
 		return xerrors.Errorf("create request: %w", err)

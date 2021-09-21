@@ -27,7 +27,7 @@ func (device *Client) BasicInformation(ctx context.Context) (*DeviceBasicInforma
 	var result DeviceBasicInformation
 
 	if err := device.withSessionRetry(ctx, func(ctx context.Context) error {
-		return device.Get(ctx, "/api/device/basic_information", &result)
+		return device.get(ctx, "/api/device/basic_information", &result)
 	}); err != nil {
 		return nil, err
 	}

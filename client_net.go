@@ -1,6 +1,9 @@
 package huwlte
 
 import (
+	"context"
+	"encoding/xml"
+	"strconv"
 	"strings"
 
 	"golang.org/x/xerrors"
@@ -20,7 +23,7 @@ var (
 	networkModeStr = map[NetworkMode]string{
 		NetworkModeAuto:     "auto",
 		NetworkMode2GOnly:   "2g_only",
-		NetworkMode3GOnly:   "3_gonly",
+		NetworkMode3GOnly:   "3g_only",
 		NetworkMode4GOnly:   "4g_only",
 		NetworkMode4G3GAuto: "4g_3g_auto",
 	}
@@ -127,10 +130,16 @@ var (
 	}
 )
 
+type LTEBand int64
+
+var (
+	LTEBandAll LTEBand = 0x7fffffffffffffff
+)
+
 func ParseNetworkBand(band string) (NetworkBand, error) {
 	band = strings.ToLower(band)
 	for k, v := range networkBandStr {
-		if v == band {
+		if strings.ToLower(v) == band {
 			return k, nil
 		}
 	}
@@ -139,4 +148,37 @@ func ParseNetworkBand(band string) (NetworkBand, error) {
 
 func (band NetworkBand) String() string {
 	return networkBandStr[band]
+}
+
+type ClientNet struct {
+	*Client
+}
+
+// NetMode contains configuration of mobile network connection.
+type NetMode struct {
+	NetworkMode NetworkMode
+	NetworkBand NetworkBand
+	LTEBand     LTEBand
+}
+
+func (net *ClientNet) SetMode(ctx context.Context, mode NetMode) error {
+	var request struct {
+		XMLName xml.Name `xml:"request"`
+
+		NetworkMode string `xml:"NetworkMode"`
+		NetworkBand string `xml:"NetworkBand"`
+		LTEBand     string `xml:"LTEBand"`
+	}
+
+	request.NetworkMode = string(mode.NetworkMode)
+	request.NetworkBand = strconv.FormatInt(int64(mode.NetworkBand), 16)
+	request.LTEBand = strconv.FormatInt(int64(mode.LTEBand), 16)
+
+	if err := net.withSessionRetry(ctx, func(ctx context.Context) error {
+		return net.post(ctx, "/api/net/net-mode", request, false, nil)
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
