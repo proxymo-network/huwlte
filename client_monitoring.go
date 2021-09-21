@@ -46,7 +46,7 @@ func (monitoring *ClientMonitoring) Status(ctx context.Context) (*MonitoringStat
 	var result MonitoringStatus
 
 	if err := monitoring.withSessionRetry(ctx, func(ctx context.Context) error {
-		return monitoring.Get(ctx, "/api/monitoring/status", &result)
+		return monitoring.get(ctx, "/api/monitoring/status", &result)
 	}); err != nil {
 		return nil, err
 	}

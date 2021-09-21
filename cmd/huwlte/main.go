@@ -121,6 +121,7 @@ func main() {
 		Commands: []*cli.Command{
 			userCmd,
 			deviceCmd,
+			netCmd,
 			monitoringCmd,
 			dialupCmd,
 			rawCmd,

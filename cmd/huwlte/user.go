@@ -47,7 +47,7 @@ var (
 			}
 			defer cancel()
 
-			if err := client.User.Login(ctx, c.String("username"), c.String("password"), false); err != nil {
+			if err := client.User.Login(ctx, c.String("username"), c.String("password"), c.Bool("relogin")); err != nil {
 				return xerrors.Errorf("failed to login: %w", err)
 			}
 
