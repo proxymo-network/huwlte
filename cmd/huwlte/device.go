@@ -42,7 +42,7 @@ var (
 			}
 			defer cancel()
 
-			if err := client.Device.Control(ctx, 1); err != nil {
+			if err := client.Device.Control(ctx, 1, c.Bool("wait")); err != nil {
 				return xerrors.Errorf("send request: %w", err)
 			}
 

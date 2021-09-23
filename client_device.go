@@ -3,6 +3,9 @@ package huwlte
 import (
 	"context"
 	"encoding/xml"
+	"time"
+
+	"golang.org/x/xerrors"
 )
 
 type DeviceBasicInformation struct {
@@ -36,7 +39,7 @@ func (device *Client) BasicInformation(ctx context.Context) (*DeviceBasicInforma
 }
 
 // Cotnrol power of device. If v = 1 reboot, device.
-func (device *Client) Control(ctx context.Context, v int) error {
+func (device *Client) Control(ctx context.Context, v int, wait bool) error {
 	var req = struct {
 		XMLName xml.Name `xml:"request"`
 		Control int      `xml:"Control"`
@@ -50,6 +53,50 @@ func (device *Client) Control(ctx context.Context, v int) error {
 		return err
 	}
 
+	if wait {
+		if err := device.waitUntilDown(ctx, 10*time.Second); err != nil {
+			return xerrors.Errorf("wait until down: %w", err)
+		}
+
+		if err := device.waitUntilUp(ctx, 15*time.Second); err != nil {
+			return xerrors.Errorf("waint until up: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (device *Client) waitUntilUp(ctx context.Context, timeout time.Duration) error {
+	err := xerrors.New("no data")
+
+	for err != nil {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			ctx, cancel := context.WithTimeout(ctx, timeout)
+			defer cancel()
+
+			_, err = device.User.StateLogin(ctx)
+		}
+	}
+
+	return nil
+}
+
+func (device *Client) waitUntilDown(ctx context.Context, timeout time.Duration) error {
+	var err error
+	for err == nil {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			ctx, cancel := context.WithTimeout(ctx, timeout)
+			defer cancel()
+
+			_, err = device.User.StateLogin(ctx)
+		}
+	}
 	return nil
 }
 
