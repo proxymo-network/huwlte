@@ -86,6 +86,8 @@ func (auth *ClientUser) Login(ctx context.Context, username string, password str
 	var modemErr *Error
 	if errors.As(err, &modemErr) && modemErr.Code == ErrorCodeNotSupported {
 		return nil
+	} else if err != nil {
+		return err
 	}
 
 	if state.State == UserStateLoggedIn && !relogin {
