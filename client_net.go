@@ -182,3 +182,25 @@ func (net *ClientNet) SetMode(ctx context.Context, mode NetMode) error {
 
 	return nil
 }
+
+type PLMN struct {
+	XMLName xml.Name `xml:"response" human:"-"`
+
+	State     string `xml:"State"`
+	FullName  string `xml:"FullName"`
+	ShortName string `xml:"ShortName"`
+	Numeric   int    `xml:"Numeric"`
+	Rat       int    `xml:"Rat"`
+}
+
+func (net *ClientNet) CurrentPLMN(ctx context.Context) (*PLMN, error) {
+	var result PLMN
+
+	if err := net.withSessionRetry(ctx, func(ctx context.Context) error {
+		return net.get(ctx, "/api/net/current-plmn", &result)
+	}); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}

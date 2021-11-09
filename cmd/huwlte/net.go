@@ -12,6 +12,30 @@ var (
 		Usage: "contains mobile network related commands",
 		Subcommands: []*cli.Command{
 			netModeCmd,
+			netCurrentPLMN,
+		},
+	}
+
+	netCurrentPLMN = &cli.Command{
+		Name:    "current-plmn",
+		Aliases: []string{"plmn"},
+		Usage:   "get current carrier info",
+		Action: func(c *cli.Context) error {
+			ctx, cancel := newCtx(c)
+			defer cancel()
+
+			client, cancel, err := newClient(ctx, c)
+			if err != nil {
+				return xerrors.Errorf("failed to create client: %w", err)
+			}
+			defer cancel()
+
+			info, err := client.Net.CurrentPLMN(ctx)
+			if err != nil {
+				return xerrors.Errorf("failed to get basic information: %w", err)
+			}
+
+			return pretty(info)
 		},
 	}
 
