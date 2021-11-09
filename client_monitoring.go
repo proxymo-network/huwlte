@@ -120,12 +120,12 @@ type MonitoringStatus struct {
 	ConnectionStatus     MonitoringStatusConnectionStatus `xml:"ConnectionStatus"`
 	WifiConnectionStatus string                           `xml:"WifiConnectionStatus"`
 	SignalStrength       string                           `xml:"SignalStrength"`
-	SignalIcon           string                           `xml:"SignalIcon"`
+	SignalIcon           int                              `xml:"SignalIcon"`
 
 	// Represents current network type.
 	CurrentNetworkType   MonitoringStatusNetworkType `xml:"CurrentNetworkType"`
-	CurrentServiceDomain string                      `xml:"CurrentServiceDomain"`
-	RoamingStatus        string                      `xml:"RoamingStatus"`
+	CurrentServiceDomain int                         `xml:"CurrentServiceDomain"`
+	RoamingStatus        int                         `xml:"RoamingStatus"`
 	BatteryStatus        string                      `xml:"BatteryStatus"`
 	BatteryLevel         string                      `xml:"BatteryLevel"`
 	BatteryPercent       string                      `xml:"BatteryPercent"`
@@ -141,7 +141,7 @@ type MonitoringStatus struct {
 	SimStatus            string                      `xml:"SimStatus"`
 	WifiStatus           string                      `xml:"WifiStatus"`
 	CurrentNetworkTypeEx string                      `xml:"CurrentNetworkTypeEx"`
-	Maxsignal            string                      `xml:"maxsignal"`
+	MaxSignal            int                         `xml:"maxsignal"`
 	WifiInDoorOnly       string                      `xml:"wifiindooronly"`
 	WiFiFrequence        string                      `xml:"wififrequence"`
 	Classify             string                      `xml:"classify"`
