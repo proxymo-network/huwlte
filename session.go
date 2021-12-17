@@ -48,7 +48,7 @@ func (s *Session) Token() string {
 func (s *Session) PopToken() string {
 	var token string
 
-	token, s.Tokens = s.Tokens[0], s.Tokens[1:]
+	token, s.Tokens = s.Tokens[len(s.Tokens)-1], s.Tokens[:len(s.Tokens)-1]
 
 	return token
 }

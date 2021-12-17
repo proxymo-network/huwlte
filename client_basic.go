@@ -147,12 +147,18 @@ func (client *Client) post(
 		req.Header.Set("Cookie", client.session.Cookie)
 	}
 
+	var csrfToken string
+
 	if client.session.HasToken() {
 		if client.session.HasMultipleTokens() {
-			req.Header.Set(headerRequestVerificationToken, client.session.PopToken())
+			csrfToken = client.session.PopToken()
 		} else {
-			req.Header.Set(headerRequestVerificationToken, client.session.Tokens[0])
+			csrfToken = client.session.Tokens[0]
 		}
+	}
+
+	if csrfToken != "" {
+		req.Header.Set(headerRequestVerificationToken, csrfToken)
 	}
 
 	res, err := client.doer.Do(req)
