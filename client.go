@@ -70,10 +70,6 @@ func New(baseURL string, opts ...ClientOpt) *Client {
 	return c
 }
 
-func (client *Client) hasAuth() bool {
-	return client.adminLogin != "" && client.adminPass != ""
-}
-
 func (client *Client) SaveSession(ctx context.Context) error {
 	if client.sessionStorage == nil {
 		return nil
