@@ -44,6 +44,10 @@ func newClient(ctx context.Context, c *cli.Context) (*huwlte.Client, context.Can
 		opts = append(opts, huwlte.WithStorage(session, &storage))
 	}
 
+	if adminPass := c.String("admin-pass"); adminPass != "" {
+		opts = append(opts, huwlte.WithAdminAuth(c.String("admin-user"), adminPass))
+	}
+
 	client := huwlte.New(c.String("url"), opts...)
 
 	if err := client.LoadSession(ctx); err != nil {
@@ -96,6 +100,17 @@ func main() {
 				Usage:   "timeout for HTTP requests",
 				EnvVars: []string{"HUWLTE_TIMEOUT"},
 				Value:   30 * time.Second,
+			},
+			&cli.StringFlag{
+				Name:    "admin-user",
+				Usage:   "username for auto admin authentication",
+				EnvVars: []string{"HUWLTE_ADMIN_USER"},
+				Value:   "admin",
+			},
+			&cli.StringFlag{
+				Name:    "admin-pass",
+				Usage:   "password for auto admin authentication",
+				EnvVars: []string{"HUWLTE_ADMIN_PASS"},
 			},
 			&cli.StringFlag{
 				Name:    "session",

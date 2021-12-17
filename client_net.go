@@ -130,7 +130,33 @@ var (
 	}
 )
 
+func (nb *NetworkBand) UnmarshalText(text []byte) error {
+	v, err := strconv.ParseInt(string(text), 16, 64)
+	if err != nil {
+		return err
+	}
+	*nb = NetworkBand(v)
+	return nil
+}
+
+func (nb NetworkBand) MarshalText() ([]byte, error) {
+	return []byte(strings.ToUpper(strconv.FormatInt(int64(nb), 16))), nil
+}
+
 type LTEBand int64
+
+func (lb *LTEBand) UnmarshalText(text []byte) error {
+	v, err := strconv.ParseInt(string(text), 16, 64)
+	if err != nil {
+		return err
+	}
+	*lb = LTEBand(v)
+	return nil
+}
+
+func (lb LTEBand) MarshalText() ([]byte, error) {
+	return []byte(strings.ToUpper(strconv.FormatInt(int64(lb), 16))), nil
+}
 
 var (
 	LTEBandAll LTEBand = 0x7fffffffffffffff
@@ -156,9 +182,23 @@ type ClientNet struct {
 
 // NetMode contains configuration of mobile network connection.
 type NetMode struct {
-	NetworkMode NetworkMode
-	NetworkBand NetworkBand
-	LTEBand     LTEBand
+	XMLName xml.Name `xml:"response" human:"-"`
+
+	NetworkMode NetworkMode `xml:"NetworkMode"`
+	NetworkBand NetworkBand `xml:"NetworkBand"`
+	LTEBand     LTEBand     `xml:"LTEBand"`
+}
+
+func (net *ClientNet) Mode(ctx context.Context) (*NetMode, error) {
+	var result NetMode
+
+	if err := net.withSessionRetry(ctx, func(ctx context.Context) error {
+		return net.get(ctx, "/api/net/net-mode", &result)
+	}); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (net *ClientNet) SetMode(ctx context.Context, mode NetMode) error {

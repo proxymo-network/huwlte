@@ -45,17 +45,17 @@ var (
 		Usage:   "configure connection mode",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "mode",
-				Usage:    "set network mode",
-				Required: true,
+				Name:  "mode",
+				Usage: "set network mode",
 			},
 			&cli.StringFlag{
-				Name:     "band",
-				Usage:    "set network band",
-				Required: true,
+				Name:  "band",
+				Usage: "set network band",
 			},
 		},
 		Action: func(c *cli.Context) error {
+			mode, band := c.String("mode"), c.String("band")
+
 			ctx, cancel := newCtx(c)
 			defer cancel()
 
@@ -65,22 +65,31 @@ var (
 			}
 			defer cancel()
 
-			netMode, err := huwlte.ParseNetworkMode(c.String("mode"))
-			if err != nil {
-				return xerrors.Errorf("failed to parse network mode: %w", err)
-			}
+			if mode == "" && band == "" {
+				modem, err := client.Net.Mode(ctx)
+				if err != nil {
+					return xerrors.Errorf("failed to get network mode: %w", err)
+				}
 
-			netBand, err := huwlte.ParseNetworkBand(c.String("band"))
-			if err != nil {
-				return xerrors.Errorf("failed to parse network band: %w", err)
-			}
+				return pretty(modem)
+			} else {
+				netMode, err := huwlte.ParseNetworkMode(mode)
+				if err != nil {
+					return xerrors.Errorf("failed to parse network mode: %w", err)
+				}
 
-			if err := client.Net.SetMode(ctx, huwlte.NetMode{
-				NetworkMode: netMode,
-				NetworkBand: netBand,
-				LTEBand:     huwlte.LTEBandAll,
-			}); err != nil {
-				return xerrors.Errorf("failed to set network mode: %w", err)
+				netBand, err := huwlte.ParseNetworkBand(band)
+				if err != nil {
+					return xerrors.Errorf("failed to parse network band: %w", err)
+				}
+
+				if err := client.Net.SetMode(ctx, huwlte.NetMode{
+					NetworkMode: netMode,
+					NetworkBand: netBand,
+					LTEBand:     huwlte.LTEBandAll,
+				}); err != nil {
+					return xerrors.Errorf("failed to set network mode: %w", err)
+				}
 			}
 
 			return nil

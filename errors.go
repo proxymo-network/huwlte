@@ -33,6 +33,10 @@ func (ec ErrorCode) String() string {
 		return "username or password orerrun"
 	case ErrorCodeUsernamePwdModify:
 		return "username or password modify"
+	case ErrorCodeSetNetModeAndBandWhenDialupFailed:
+		return "set net mode and band when dialup failed"
+	case ErrorCodeSetNetModeAndBandFailed:
+		return "set net mode and band failed"
 	default:
 		return fmt.Sprintf("unknown(%d)", ec)
 	}
@@ -55,6 +59,9 @@ const (
 	ErrorCodeUsernamePwdWrong   ErrorCode = 108006
 	ErrorCodeUsernamePwdOrerrun ErrorCode = 108007
 	ErrorCodeUsernamePwdModify  ErrorCode = 115002
+
+	ErrorCodeSetNetModeAndBandWhenDialupFailed ErrorCode = 112001
+	ErrorCodeSetNetModeAndBandFailed           ErrorCode = 112003
 )
 
 type Error struct {

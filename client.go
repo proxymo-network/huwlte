@@ -24,11 +24,22 @@ func WithStorage(name string, storage SessionStorage) ClientOpt {
 	}
 }
 
+// WithAdminAuth sets the credentials used to authenticate, when need.
+func WithAdminAuth(username, password string) ClientOpt {
+	return func(c *Client) {
+		c.adminLogin = username
+		c.adminPass = password
+	}
+}
+
 // Clients it's XML API wrapper.
 type Client struct {
 	baseURL string
 	doer    *http.Client
 	session Session
+
+	adminLogin string
+	adminPass  string
 
 	sessionName    string
 	sessionStorage SessionStorage
@@ -57,6 +68,10 @@ func New(baseURL string, opts ...ClientOpt) *Client {
 	c.Net = &ClientNet{c}
 
 	return c
+}
+
+func (client *Client) hasAuth() bool {
+	return client.adminLogin != "" && client.adminPass != ""
 }
 
 func (client *Client) SaveSession(ctx context.Context) error {
