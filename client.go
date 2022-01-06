@@ -49,6 +49,7 @@ type Client struct {
 	Monitoring *ClientMonitoring
 	Dialup     *ClientDialup
 	Net        *ClientNet
+	SMS        *ClientSMS
 }
 
 // New creates a new Client instance.
@@ -66,6 +67,7 @@ func New(baseURL string, opts ...ClientOpt) *Client {
 	c.Monitoring = &ClientMonitoring{c}
 	c.Dialup = &ClientDialup{c}
 	c.Net = &ClientNet{c}
+	c.SMS = &ClientSMS{c}
 
 	return c
 }

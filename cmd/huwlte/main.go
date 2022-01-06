@@ -140,6 +140,7 @@ func main() {
 			monitoringCmd,
 			dialupCmd,
 			rawCmd,
+			smsCmd,
 		},
 	}
 
