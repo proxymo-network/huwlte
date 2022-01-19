@@ -1,6 +1,9 @@
 package huwlte
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type ErrorCode int
 
@@ -81,4 +84,9 @@ func (err *Error) Error() string {
 		return fmt.Sprintf("%d: %s", err.Code, err.Code.String())
 	}
 	return fmt.Sprintf("%d: %s (%s)", err.Code, err.Code.String(), err.Message)
+}
+
+func IsError(err error, code ErrorCode) bool {
+	var herr *Error
+	return errors.As(err, &herr) && herr.Code == code
 }

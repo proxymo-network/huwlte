@@ -1,6 +1,7 @@
 package huwlte
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,4 +39,12 @@ func TestError_Error(t *testing.T) {
 	} {
 		assert.Equal(t, test.Str, test.Err.Error())
 	}
+}
+
+func TestIsError(t *testing.T) {
+	err := newError(int(ErrorCodeInternal), "shit happens")
+
+	assert.True(t, IsError(err, ErrorCodeInternal))
+	assert.False(t, IsError(err, ErrorCodeNotSupported))
+	assert.False(t, IsError(context.Canceled, ErrorCodeInternal))
 }
